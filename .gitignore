@@ -1,0 +1,108 @@
+# -----------------------------
+# Python
+# -----------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+*.so
+
+# Virtual Environments
+.env
+.venv/
+venv/
+env/
+ENV/
+.venv.bak/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# -----------------------------
+# Environment & Config Files
+# -----------------------------
+# Local env vars (never commit secrets)
+.env
+.env.local
+.env.*.local
+!.env.example  # Keep sample env for others
+
+# -----------------------------
+# Logs & Debug
+# -----------------------------
+*.log
+*.out
+*.err
+celerybeat-schedule
+celerybeat.pid
+
+# -----------------------------
+# Unit test / coverage reports
+# -----------------------------
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+test-results/
+
+# -----------------------------
+# Database / Data files
+# -----------------------------
+*.db
+*.sqlite3
+instance/
+db.sqlite3
+alembic.ini
+
+# -----------------------------
+# IDEs & Editors
+# -----------------------------
+.vscode/
+.idea/
+*.swp
+*.swo
+*.bak
+*.tmp
+*.orig
+
+# -----------------------------
+# Docker
+# -----------------------------
+# Ignore local build artifacts and volumes
+*.pid
+*.seed
+*.tar
+docker-compose.override.yml
+.dockerignore
+
+# -----------------------------
+# OS files
+# -----------------------------
+.DS_Store
+Thumbs.db
+
+# -----------------------------
+# Jupyter / Notebooks (if used)
+# -----------------------------
+.ipynb_checkpoints
+*.ipynb
+notebooks/__pycache__/
+
+# -----------------------------
+# Misc
+# -----------------------------
+*.old
+*.save
+__pypackages__/
