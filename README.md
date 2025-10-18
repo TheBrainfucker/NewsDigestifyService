@@ -1,1 +1,1 @@
-# News Digest Service (FastAPI + Celery + Redis + PostgreSQL)
+# News Digestify Service (FastAPI + Celery + Redis + PostgreSQL)

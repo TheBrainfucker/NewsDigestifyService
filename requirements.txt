@@ -1,8 +1,6 @@
-fastapi
-uvicorn[standard]
-sqlalchemy
-psycopg2-binary
+fastapi[standard]
+sqlalchemy>=2.0
+asyncpg
 celery[redis]
-requests
 python-dotenv
-pydantic
+pydantic-settings
