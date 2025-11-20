@@ -13,4 +13,7 @@ celery_app.conf.update(
     accept_content=["json"],
     timezone="UTC",
     enable_utc=True,
+    include=['app.services.digestify_service']
 )
+
+# Tasks will be auto-discovered via the include configuration

@@ -29,7 +29,6 @@ class DigestRequest(Base):
     )
     error_message = Column(Text, nullable=True, comment="Error message if the request failed")
 
-    # Indexes for better query performance
     __table_args__ = (
         Index('idx_digest_status', 'status'),
         Index('idx_digest_created_at', 'created_at'),

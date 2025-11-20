@@ -4,8 +4,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.base import get_session
 from app.db.models import DigestRequest
 from app.db.schemas import DigestRequestSchema, DigestStatusSchema, DigestResultSchema, ErrorResponseSchema
-from app.services.digestify_service import generate_digest
-from uuid import UUID
+from app.services.digestify_service import generate_digest, test_celery, simple_test
+from uuid import UUID, uuid4
 from sqlalchemy import select
 
 router = APIRouter(prefix="/digestify", tags=["Digestify"])
@@ -21,13 +21,23 @@ router = APIRouter(prefix="/digestify", tags=["Digestify"])
 )
 async def create_digest(req: DigestRequestSchema, session: AsyncSession = Depends(get_session)):
     try:
-        digest_id = str(UUID.uuid4())
+        digest_id = str(uuid4())
         digest = DigestRequest(id=digest_id, topics=req.topics)
         session.add(digest)
         await session.commit()
         await session.refresh(digest)
 
-        generate_digest.delay(digest.id, req.topics)
+        # Test Celery first
+        test_task = test_celery.delay()
+        print(f"Test Celery task: {test_task.id}")
+        
+        # Test simple task
+        simple_task = simple_test.delay()
+        print(f"Simple test task: {simple_task.id}")
+        
+        # Queue the background task
+        task = generate_digest.delay(digest.id, req.topics)
+        print(f"Queued Celery task {task.id} for digest {digest.id}")
         
         return DigestStatusSchema(id=digest.id, status=digest.status, created_at=digest.created_at)
     except Exception as e:
@@ -44,21 +54,24 @@ async def create_digest(req: DigestRequestSchema, session: AsyncSession = Depend
     description="Check the current status of a digest request by its ID."
 )
 async def get_status(
-    digest_id: UUID = Path(..., description="The unique identifier of the digest request"),
+    digest_id: str = Path(..., description="The unique identifier of the digest request"),
     session: AsyncSession = Depends(get_session)
 ):
-    
-    digest = await session.get(DigestRequest, digest_id)
-    if not digest:
-        raise HTTPException(status_code=404, detail=f"Digest with ID '{digest_id}' not found")
-    
-    return DigestStatusSchema(
-        id=digest.id,
-        status=digest.status,
-        created_at=digest.created_at,
-        updated_at=digest.updated_at,
-        error=digest.error_message
-    )
+    try:
+        UUID(digest_id)
+        digest = await session.get(DigestRequest, digest_id)
+        if not digest:
+            raise HTTPException(status_code=404, detail=f"Digest with ID '{digest_id}' not found")
+        
+        return DigestStatusSchema(
+            id=digest.id,
+            status=digest.status,
+            created_at=digest.created_at,
+            updated_at=digest.updated_at,
+            error=digest.error_message
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 @router.get(
     "/{digest_id}/result", 
@@ -72,24 +85,29 @@ async def get_status(
     description="Retrieve the completed digest result. Only available when status is 'completed'."
 )
 async def get_result(
-    digest_id: UUID = Path(..., description="The unique identifier of the digest request"),
+    digest_id: str = Path(..., description="The unique identifier of the digest request"),
     session: AsyncSession = Depends(get_session)
 ):
-    
-    digest = await session.get(DigestRequest, digest_id)
-    if not digest:
-        raise HTTPException(status_code=404, detail=f"Digest with ID '{digest_id}' not found")
-    
-    result = None
-    if digest.result:
-        try:
-            result = json.loads(digest.result)
-        except json.JSONDecodeError:
-            raise HTTPException(status_code=500, detail="Digest result is corrupted")
-    
-    return DigestResultSchema(
-        id=digest.id,
-        status=digest.status,
-        result=result,
-        error=digest.error_message
-    )
+    try:
+        UUID(digest_id)
+        digest = await session.get(DigestRequest, digest_id)
+        if not digest:
+            raise HTTPException(status_code=404, detail=f"Digest with ID '{digest_id}' not found")
+        
+        result = None
+        if digest.result:
+            try:
+                result = json.loads(digest.result)
+            except json.JSONDecodeError:
+                raise HTTPException(status_code=500, detail="Digest result is corrupted")
+        
+        return DigestResultSchema(
+            id=digest.id,
+            status=digest.status,
+            result=result,
+            error=digest.error_message
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")

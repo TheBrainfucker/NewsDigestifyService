@@ -65,10 +65,33 @@ class DigestStatusSchema(DigestBaseSchema):
     created_at: Optional[datetime] = Field(None, description="When the request was created")
     updated_at: Optional[datetime] = Field(None, description="When the status was last updated")
 
+# News article schema
+class NewsArticle(BaseModel):
+    title: str = Field(..., description="Article headline")
+    url: str = Field(..., description="Article URL")
+    source: str = Field(..., description="News source (e.g., 'BBC', 'CNN')")
+    published_at: Optional[datetime] = Field(None, description="When the article was published")
+    summary: Optional[str] = Field(None, description="Brief summary of the article")
+    image_url: Optional[str] = Field(None, description="Article thumbnail image URL")
+
+# Topic digest schema
+class TopicDigest(BaseModel):
+    topic: str = Field(..., description="The news topic")
+    articles: List[NewsArticle] = Field(..., description="List of articles for this topic")
+    summary: Optional[str] = Field(None, description="AI-generated summary of the topic")
+    key_points: List[str] = Field(default_factory=list, description="Key points from the articles")
+
+# Main digest result schema
+class DigestResult(BaseModel):
+    topics: List[TopicDigest] = Field(..., description="Digest organized by topics")
+    generated_at: datetime = Field(default_factory=datetime.utcnow, description="When the digest was generated")
+    total_articles: int = Field(..., description="Total number of articles in the digest")
+    sources: List[str] = Field(..., description="List of unique news sources used")
+
 class DigestResultSchema(DigestBaseSchema):
-    result: Optional[Dict[str, List[str]]] = Field(
+    result: Optional[DigestResult] = Field(
         None, 
-        description="The generated digest organized by topic"
+        description="The complete news digest with articles and summaries"
     )
 
 # Error response schemas
